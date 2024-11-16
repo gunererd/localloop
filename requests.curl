@@ -1,0 +1,30 @@
+curl -X GET -i 'https://api.restful-api.dev/objects'
+
+curl -X GET 
+-i
+-w "\nTotal Time: %{time_total}\n"
+'http://192.168.58.2:30001/users/me'
+
+
+curl -X POST \
+-H "Content-Type: application/json" \
+-d '{"email": "gunererd@gmail.com", "password": "hebele", "name": "hubele"}' \
+-i 'http://localhost:8080/users/register'
+
+
+curl -X POST \
+-H "Content-Type: application/json" \
+-d '{"email": "gunererd@gmail.com", "password": "hebele"}' \
+-i 'http://localhost:8080/users/login'
+
+curl -X GET \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1bmVyZXJkQGdtYWlsLmNvbSIsImV4cCI6MTczMTc4ODE5MX0.qBN4XIlbwbENeMsl8HJpYUphx9StVEvks09p-kM3cls" \
+-i 'http://localhost:8080/users/me'
+
+
+curl -X PUT \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1bmVyZXJkQGdtYWlsLmNvbSIsImV4cCI6MTczMTc4NjE1MX0.DsB9zu_ROkYpY1UkUMzBtHbehUVQekLuYUiNsveQg0o" \
+-d '{"name": "zubele", "password": "hebele"}' \
+-i 'http://localhost:8080/users/me'

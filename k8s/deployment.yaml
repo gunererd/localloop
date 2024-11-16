@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-management-deployment
+  labels:
+    app: user-management
+spec:
+  replicas: 4  # Number of pod replicas
+  selector:
+    matchLabels:
+      app: user-management
+  template:
+    metadata:
+      labels:
+        app: user-management
+    spec:
+      containers:
+      - name: user-management-container
+        image: user-management-service
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
