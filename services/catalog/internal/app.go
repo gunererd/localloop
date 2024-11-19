@@ -9,8 +9,7 @@ import (
 
 	"localloop/libs/pkg/db"
 	"localloop/services/catalog/internal/config"
-	"localloop/services/catalog/internal/domain/catalog"
-	"localloop/services/catalog/internal/infrastructure/repository/inmemory"
+	catalog "localloop/services/catalog/internal/domain"
 	"localloop/services/catalog/internal/infrastructure/repository/postgresql"
 	"localloop/services/catalog/internal/infrastructure/web"
 )
@@ -39,7 +38,6 @@ func NewApp(cfg *config.Config, opts ...Option) (*App, error) {
 	return app, nil
 }
 
-// WithPostgresDatabase sets up the PostgreSQL connection and applies it to the App
 func WithPostgresDatabase() Option {
 	return func(app *App) error {
 		log.Println("Connecting to PostgreSQL:", app.config.PostgresURI)
@@ -92,13 +90,6 @@ func WithWebServer() Option {
 		}
 
 		app.Server = web.NewCatalogManagementServer(app.CatalogService)
-		return nil
-	}
-}
-
-func WithInMemoryCatalogRepository() Option {
-	return func(app *App) error {
-		app.CatalogRepo = inmemory.NewCatalogRepository()
 		return nil
 	}
 }

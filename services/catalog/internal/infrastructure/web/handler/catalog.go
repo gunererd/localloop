@@ -2,7 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"localloop/services/catalog/internal/domain/catalog"
+	catalog "localloop/services/catalog/internal/domain"
 	"net/http"
 	"time"
 

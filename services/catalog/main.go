@@ -12,7 +12,8 @@ func main() {
 
 	catalogApp, err := app.NewApp(
 		cfg,
-		app.WithInMemoryCatalogRepository(),
+		app.WithPostgresDatabase(),
+		app.WithPostgresCatalogRepository(),
 		app.WithCatalogService(),
 		app.WithWebServer(),
 	)

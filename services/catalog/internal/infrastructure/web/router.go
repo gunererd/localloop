@@ -2,7 +2,7 @@ package web
 
 import (
 	"localloop/libs/pkg/web"
-	"localloop/services/catalog/internal/domain/catalog"
+	catalog "localloop/services/catalog/internal/domain"
 	"localloop/services/catalog/internal/infrastructure/web/handler"
 )
 

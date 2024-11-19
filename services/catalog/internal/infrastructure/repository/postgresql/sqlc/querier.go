@@ -14,15 +14,23 @@ type Querier interface {
 	AssignFieldToCategory(ctx context.Context, arg AssignFieldToCategoryParams) error
 	CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error)
 	CreateField(ctx context.Context, arg CreateFieldParams) (Field, error)
+	CreateFieldType(ctx context.Context, arg CreateFieldTypeParams) (FieldType, error)
+	CreateFieldTypeDiscriminator(ctx context.Context, arg CreateFieldTypeDiscriminatorParams) (FieldTypeDiscriminator, error)
 	DeleteCategory(ctx context.Context, id uuid.UUID) error
 	DeleteField(ctx context.Context, id uuid.UUID) error
+	DeleteFieldType(ctx context.Context, id uuid.UUID) error
 	GetCategory(ctx context.Context, id uuid.UUID) (Category, error)
 	GetCategoryFields(ctx context.Context, categoryID uuid.UUID) ([]GetCategoryFieldsRow, error)
 	GetField(ctx context.Context, id uuid.UUID) (Field, error)
+	GetFieldType(ctx context.Context, id uuid.UUID) (FieldType, error)
+	GetFieldTypeDiscriminator(ctx context.Context, id uuid.UUID) (FieldTypeDiscriminator, error)
 	ListCategories(ctx context.Context) ([]Category, error)
+	ListFieldTypeDiscriminators(ctx context.Context) ([]FieldTypeDiscriminator, error)
+	ListFieldTypes(ctx context.Context) ([]FieldType, error)
 	ListFields(ctx context.Context) ([]Field, error)
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
 	UpdateField(ctx context.Context, arg UpdateFieldParams) (Field, error)
+	UpdateFieldType(ctx context.Context, arg UpdateFieldTypeParams) (FieldType, error)
 }
 
 var _ Querier = (*Queries)(nil)
