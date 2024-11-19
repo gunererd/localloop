@@ -3,12 +3,13 @@ package app
 import (
 	"localloop/libs/pkg/web"
 	"localloop/services/catalog/internal/config"
-	"localloop/services/catalog/internal/infrastructure/web/handler"
+	"localloop/services/catalog/internal/domain/catalog"
 )
 
 type App struct {
-	config *config.Config
-	Server *web.Server
+	config         *config.Config
+	Server         *web.Server
+	CatalogService *catalog.Service
 }
 
 type Option func(*App) error
@@ -27,21 +28,19 @@ func NewApp(cfg *config.Config, opts ...Option) (*App, error) {
 	return app, nil
 }
 
+func WithCatalogService() Option {
+	return func(app *App) error {
+		// We'll implement the repository later with sqlc
+		// For now, we'll just initialize the service
+		app.CatalogService = catalog.NewService(nil, catalog.ServiceConfig{})
+		return nil
+	}
+}
+
 func WithWebServer() Option {
 	return func(app *App) error {
-		server := web.NewServer()
-
-		// Initialize handlers
-		catalogHandler := handler.NewCatalogHandler()
-
-		// Setup routes
-		server.Router.HandleFunc("/categories", catalogHandler.ListCategories).Methods("GET")
-		server.Router.HandleFunc("/categories", catalogHandler.CreateCategory).Methods("POST")
-		server.Router.HandleFunc("/categories/{id}", catalogHandler.GetCategory).Methods("GET")
-		server.Router.HandleFunc("/categories/{id}", catalogHandler.UpdateCategory).Methods("PUT")
-		server.Router.HandleFunc("/categories/{id}", catalogHandler.DeleteCategory).Methods("DELETE")
-
-		app.Server = server
+		app.Server = web.NewServer()
+		// We'll add routes and handlers later
 		return nil
 	}
 }
