@@ -1,1 +1,2 @@
- 
+DROP TABLE IF EXISTS fields;
+DROP TABLE IF EXISTS field_types; 
