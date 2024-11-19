@@ -5,12 +5,10 @@ curl -X GET
 -w "\nTotal Time: %{time_total}\n"
 'http://192.168.58.2:30001/users/me'
 
-
 curl -X POST \
 -H "Content-Type: application/json" \
 -d '{"email": "gunererd@gmail.com", "password": "hebele", "name": "hubele"}' \
 -i 'http://localhost:8080/users/register'
-
 
 curl -X POST \
 -H "Content-Type: application/json" \
@@ -22,9 +20,43 @@ curl -X GET \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1bmVyZXJkQGdtYWlsLmNvbSIsImV4cCI6MTczMTc4ODE5MX0.qBN4XIlbwbENeMsl8HJpYUphx9StVEvks09p-kM3cls" \
 -i 'http://localhost:8080/users/me'
 
-
 curl -X PUT \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1bmVyZXJkQGdtYWlsLmNvbSIsImV4cCI6MTczMTc4NjE1MX0.DsB9zu_ROkYpY1UkUMzBtHbehUVQekLuYUiNsveQg0o" \
 -d '{"name": "zubele", "password": "hebele"}' \
 -i 'http://localhost:8080/users/me'
+
+# List all categories
+curl -X GET \
+-H "Content-Type: application/json" \
+-i 'http://localhost:8081/categories'
+
+# Create a new category
+curl -X POST \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "Electronics",
+  "description": "Electronic devices and accessories",
+  "parentId": null
+}' \
+-i 'http://localhost:8081/categories'
+
+# Get a specific category by ID
+curl -X GET \
+-H "Content-Type: application/json" \
+-i 'http://localhost:8081/categories/5d5c2ed5-4dc7-4aa5-9b6c-9e0fc15182d3'
+
+# Update a category
+curl -X PUT \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "Electronics & Gadgets",
+  "description": "Updated description for electronic devices",
+  "parentId": null
+}' \
+-i 'http://localhost:8081/categories/5d5c2ed5-4dc7-4aa5-9b6c-9e0fc15182d3'
+
+# Delete a category
+curl -X DELETE \
+-H "Content-Type: application/json" \
+-i 'http://localhost:8081/categories/5d5c2ed5-4dc7-4aa5-9b6c-9e0fc15182d3'
