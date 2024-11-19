@@ -2,8 +2,8 @@ go 1.23.2
 
 use (
 	./libs/pkg
-	./services/users
+	./services/user
 	./services/catalog
-	./services/listings
+	./services/listing
 	./services/web
 )
