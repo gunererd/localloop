@@ -28,16 +28,16 @@ func NewService(repo Repository, cfg ServiceConfig) *Service {
 }
 
 // Category operations
-func (s *Service) CreateCategory(ctx context.Context, name, description string, parentID *uuid.UUID) (*Category, error) {
-	if name == "" {
+func (s *Service) CreateCategory(ctx context.Context, params CreateCategoryParams) (*Category, error) {
+	if params.Name == "" {
 		return nil, ErrInvalidInput
 	}
 
 	category := &Category{
 		ID:          uuid.New(),
-		Name:        name,
-		Description: description,
-		ParentID:    parentID,
+		Name:        params.Name,
+		Description: params.Description,
+		ParentID:    params.ParentID,
 	}
 
 	if err := s.repo.CreateCategory(ctx, category); err != nil {
@@ -55,18 +55,15 @@ func (s *Service) GetCategory(ctx context.Context, id uuid.UUID) (*Category, err
 	return category, nil
 }
 
-func (s *Service) UpdateCategory(ctx context.Context, id uuid.UUID, name, description string) (*Category, error) {
-	category, err := s.repo.GetCategory(ctx, id)
+func (s *Service) UpdateCategory(ctx context.Context, params UpdateCategoryParams) (*Category, error) {
+	category, err := s.repo.GetCategory(ctx, params.ID)
 	if err != nil {
 		return nil, ErrCategoryNotFound
 	}
 
-	if name != "" {
-		category.Name = name
-	}
-	if description != "" {
-		category.Description = description
-	}
+	category.Name = params.Name
+	category.Description = params.Description
+	category.ParentID = params.ParentID
 
 	if err := s.repo.UpdateCategory(ctx, category); err != nil {
 		return nil, err

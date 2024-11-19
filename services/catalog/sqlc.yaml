@@ -1,12 +1,12 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    queries: "internal/infrastructure/repository/query/"
+    queries: "internal/infrastructure/repository/postgresql/query/"
     schema: "migrations/"
     gen:
       go:
-        package: "repository"
-        out: "internal/infrastructure/repository/sqlc"
+        package: "sqlc"
+        out: "internal/infrastructure/repository/postgresql/sqlc"
         emit_json_tags: true
         emit_interface: true
         emit_empty_slices: true
@@ -15,4 +15,6 @@ sql:
           - db_type: "uuid"
             go_type: "github.com/google/uuid.UUID"
           - db_type: "uuid[]"
-            go_type: "[]github.com/google/uuid.UUID"
+            go_type:
+              type: "[]github.com/google/uuid.UUID"
+              import: "github.com/google/uuid"

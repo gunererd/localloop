@@ -32,3 +32,16 @@ type FieldType struct {
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
+
+type CreateCategoryParams struct {
+	Name        string `validate:"required"`
+	Description string
+	ParentID    *uuid.UUID
+}
+
+type UpdateCategoryParams struct {
+	ID          uuid.UUID `validate:"required"`
+	Name        string    `validate:"required"`
+	Description string
+	ParentID    *uuid.UUID
+}

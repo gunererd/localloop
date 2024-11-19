@@ -5,12 +5,14 @@ import (
 )
 
 type Config struct {
-	Port string
+	Port        string
+	PostgresURI string
 }
 
 func Load() *Config {
 	return &Config{
-		Port: getEnv("PORT", "8082"),
+		Port:        getEnv("PORT", "8082"),
+		PostgresURI: getEnv("POSTGRES_URI", "postgres://postgres:password@localhost:5432/catalog?sslmode=disable"),
 	}
 }
 
