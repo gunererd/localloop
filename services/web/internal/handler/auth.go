@@ -2,7 +2,7 @@ package handler
 
 import (
 	"html/template"
-	"localloop/services/frontend/internal/repository"
+	"localloop/services/web/internal/repository"
 	"net/http"
 )
 

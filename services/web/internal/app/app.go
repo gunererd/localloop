@@ -2,9 +2,9 @@ package app
 
 import (
 	"localloop/libs/pkg/web"
-	"localloop/services/frontend/internal/config"
-	"localloop/services/frontend/internal/handler"
-	"localloop/services/frontend/internal/repository"
+	"localloop/services/web/internal/config"
+	"localloop/services/web/internal/handler"
+	"localloop/services/web/internal/repository"
 )
 
 type App struct {

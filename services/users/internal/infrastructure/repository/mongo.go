@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"localloop/services/user-management/internal/domain/user"
+	"localloop/services/users/internal/domain/user"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"

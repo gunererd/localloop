@@ -2,7 +2,7 @@ package web
 
 import (
 	"context"
-	"localloop/services/user-management/internal/domain/user"
+	"localloop/services/users/internal/domain/user"
 	"net/http"
 )
 

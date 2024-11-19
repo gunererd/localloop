@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"localloop/libs/pkg/db"
-	"localloop/services/user-management/internal/config"
-	"localloop/services/user-management/internal/domain/user"
-	"localloop/services/user-management/internal/infrastructure/repository"
-	"localloop/services/user-management/internal/infrastructure/web"
+	"localloop/services/users/internal/config"
+	"localloop/services/users/internal/domain/user"
+	"localloop/services/users/internal/infrastructure/repository"
+	"localloop/services/users/internal/infrastructure/web"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// App holds all components and configuration for the user-management service
+// App holds all components and configuration for the users service
 type App struct {
 	config      *config.Config
 	MongoClient *mongo.Client
@@ -73,7 +73,7 @@ func WithMongoUserRepositroy() Option {
 			return errors.New("MongoClient is not initialized. Make sure to call WithMongoDatabase before WithUserService")
 		}
 
-		database := app.MongoClient.Database("user-management")
+		database := app.MongoClient.Database("users")
 		app.UserRepo = repository.NewMongoRepository(database)
 		return nil
 	}

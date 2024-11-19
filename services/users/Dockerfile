@@ -11,10 +11,10 @@ COPY go.work go.work.sum ./
 COPY libs/pkg /app/libs/pkg
 
 # Copy the user-management service
-COPY services/user-management /app/services/user-management
+COPY services/users /app/services/users
 
 # Set the working directory to the user-management service
-WORKDIR /app/services/user-management
+WORKDIR /app/services/users
 
 # Download dependencies
 RUN go mod download
@@ -29,7 +29,7 @@ FROM alpine:latest
 WORKDIR /root/
 
 # Copy the compiled binary from the builder stage
-COPY --from=builder /app/services/user-management/user-management .
+COPY --from=builder /app/services/users/user-management .
 
 # Ensure the binary is executable
 RUN chmod +x ./user-management

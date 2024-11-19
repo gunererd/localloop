@@ -1,4 +1,4 @@
-module localloop/services/user-management
+module localloop/services/users
 
 go 1.23.2
 

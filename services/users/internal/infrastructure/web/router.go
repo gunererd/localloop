@@ -2,8 +2,8 @@ package web
 
 import (
 	"localloop/libs/pkg/web"
-	"localloop/services/user-management/internal/domain/user"
-	"localloop/services/user-management/internal/infrastructure/web/handler"
+	"localloop/services/users/internal/domain/user"
+	"localloop/services/users/internal/infrastructure/web/handler"
 )
 
 type UserManagementServer struct {

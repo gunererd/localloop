@@ -2,11 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch User Management Service",
+            "name": "Launch Users Service",
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${workspaceFolder}/services/user-management/main.go",
+            "program": "${workspaceFolder}/services/users/main.go",
             "env": {
                 "PORT": "8080",
                 "JWT_SECRET": "your-default-secret-key",
@@ -15,11 +15,11 @@
             }
         },
         {
-            "name": "Launch Frontend Service",
+            "name": "Launch Web Service",
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${workspaceFolder}/services/frontend/main.go",
+            "program": "${workspaceFolder}/services/web/main.go",
             "env": {
                 "PORT": "3000",
                 "USER_SERVICE_URL": "http://localhost:8080"
@@ -29,8 +29,7 @@
     "compounds": [
         {
             "name": "Debug All Services",
-            "configurations": ["Launch User Management Service", "Launch Frontend Service"],
-            "preLaunchTask": "start-all-services"
+            "configurations": ["Launch Users Service", "Launch Web Service"]
         }
     ]
 }

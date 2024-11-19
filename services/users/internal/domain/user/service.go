@@ -7,8 +7,8 @@ import (
 	"github.com/golang-jwt/jwt"
 
 	"localloop/libs/pkg/errorbuilder"
-	"localloop/services/user-management/internal/shared"
-	apperr "localloop/services/user-management/internal/shared/error"
+	"localloop/services/users/internal/shared"
+	apperr "localloop/services/users/internal/shared/error"
 )
 
 type Service struct {

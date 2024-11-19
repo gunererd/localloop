@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
-	"localloop/services/user-management/internal/domain/user"
+	"localloop/services/users/internal/domain/user"
 	"sync"
 )
 

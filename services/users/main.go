@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	app "localloop/services/user-management/internal"
-	"localloop/services/user-management/internal/config"
+	app "localloop/services/users/internal"
+	"localloop/services/users/internal/config"
 )
 
 func main() {

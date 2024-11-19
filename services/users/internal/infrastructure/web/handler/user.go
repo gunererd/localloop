@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"localloop/services/user-management/internal/domain/user"
+	"localloop/services/users/internal/domain/user"
 )
 
 type UserHandler struct {
