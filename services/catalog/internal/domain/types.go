@@ -92,3 +92,10 @@ type CreateFieldTypeDiscriminatorParams struct {
 	Description      string
 	ValidationSchema map[string]interface{} `validate:"required"`
 }
+
+type UpdateFieldTypeParams struct {
+	ID                  uuid.UUID              `validate:"required"`
+	Name                string                 `validate:"required"`
+	TypeDiscriminatorID uuid.UUID              `validate:"required"`
+	Properties          map[string]interface{} `validate:"required"`
+}

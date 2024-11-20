@@ -139,6 +139,33 @@ func (s *Service) CreateFieldType(ctx context.Context, params CreateFieldTypePar
 	return fieldType, nil
 }
 
+func (s *Service) GetFieldType(ctx context.Context, id uuid.UUID) (*FieldType, error) {
+	return s.repo.GetFieldType(ctx, id)
+}
+
+func (s *Service) ListFieldTypes(ctx context.Context) ([]*FieldType, error) {
+	return s.repo.ListFieldTypes(ctx)
+}
+
+func (s *Service) UpdateFieldType(ctx context.Context, params UpdateFieldTypeParams) (*FieldType, error) {
+	fieldType := &FieldType{
+		ID:                  params.ID,
+		Name:                params.Name,
+		TypeDiscriminatorID: params.TypeDiscriminatorID,
+		Properties:          params.Properties,
+	}
+
+	if err := s.repo.UpdateFieldType(ctx, fieldType); err != nil {
+		return nil, err
+	}
+
+	return fieldType, nil
+}
+
+func (s *Service) DeleteFieldType(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteFieldType(ctx, id)
+}
+
 // Field Type Discriminator operations
 func (s *Service) CreateFieldTypeDiscriminator(ctx context.Context, params CreateFieldTypeDiscriminatorParams) (*FieldTypeDiscriminator, error) {
 	discriminator := &FieldTypeDiscriminator{
@@ -153,4 +180,12 @@ func (s *Service) CreateFieldTypeDiscriminator(ctx context.Context, params Creat
 	}
 
 	return discriminator, nil
+}
+
+func (s *Service) GetFieldTypeDiscriminator(ctx context.Context, id uuid.UUID) (*FieldTypeDiscriminator, error) {
+	return s.repo.GetFieldTypeDiscriminator(ctx, id)
+}
+
+func (s *Service) ListFieldTypeDiscriminators(ctx context.Context) ([]*FieldTypeDiscriminator, error) {
+	return s.repo.ListFieldTypeDiscriminators(ctx)
 }
