@@ -19,6 +19,7 @@ type Querier interface {
 	DeleteCategory(ctx context.Context, id uuid.UUID) error
 	DeleteField(ctx context.Context, id uuid.UUID) error
 	DeleteFieldType(ctx context.Context, id uuid.UUID) error
+	DeleteFieldTypeDiscriminator(ctx context.Context, id uuid.UUID) error
 	GetCategory(ctx context.Context, id uuid.UUID) (Category, error)
 	GetCategoryFields(ctx context.Context, categoryID uuid.UUID) ([]GetCategoryFieldsRow, error)
 	GetField(ctx context.Context, id uuid.UUID) (Field, error)
@@ -31,6 +32,7 @@ type Querier interface {
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
 	UpdateField(ctx context.Context, arg UpdateFieldParams) (Field, error)
 	UpdateFieldType(ctx context.Context, arg UpdateFieldTypeParams) (FieldType, error)
+	UpdateFieldTypeDiscriminator(ctx context.Context, arg UpdateFieldTypeDiscriminatorParams) (FieldTypeDiscriminator, error)
 }
 
 var _ Querier = (*Queries)(nil)

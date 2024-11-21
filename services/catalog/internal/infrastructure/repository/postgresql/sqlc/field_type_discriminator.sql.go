@@ -50,6 +50,16 @@ func (q *Queries) CreateFieldTypeDiscriminator(ctx context.Context, arg CreateFi
 	return i, err
 }
 
+const deleteFieldTypeDiscriminator = `-- name: DeleteFieldTypeDiscriminator :exec
+DELETE FROM field_type_discriminators
+WHERE id = $1
+`
+
+func (q *Queries) DeleteFieldTypeDiscriminator(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteFieldTypeDiscriminator, id)
+	return err
+}
+
 const getFieldTypeDiscriminator = `-- name: GetFieldTypeDiscriminator :one
 SELECT id, name, description, validation_schema, created_at FROM field_type_discriminators
 WHERE id = $1
@@ -99,4 +109,38 @@ func (q *Queries) ListFieldTypeDiscriminators(ctx context.Context) ([]FieldTypeD
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateFieldTypeDiscriminator = `-- name: UpdateFieldTypeDiscriminator :one
+UPDATE field_type_discriminators
+SET name = $2,
+    description = $3,
+    validation_schema = $4
+WHERE id = $1
+RETURNING id, name, description, validation_schema, created_at
+`
+
+type UpdateFieldTypeDiscriminatorParams struct {
+	ID               uuid.UUID       `json:"id"`
+	Name             string          `json:"name"`
+	Description      sql.NullString  `json:"description"`
+	ValidationSchema json.RawMessage `json:"validationSchema"`
+}
+
+func (q *Queries) UpdateFieldTypeDiscriminator(ctx context.Context, arg UpdateFieldTypeDiscriminatorParams) (FieldTypeDiscriminator, error) {
+	row := q.db.QueryRowContext(ctx, updateFieldTypeDiscriminator,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.ValidationSchema,
+	)
+	var i FieldTypeDiscriminator
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.ValidationSchema,
+		&i.CreatedAt,
+	)
+	return i, err
 }
