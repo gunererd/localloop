@@ -8,7 +8,7 @@ import (
 
 	"localloop/libs/pkg/errorbuilder"
 	"localloop/services/user/internal/shared"
-	apperr "localloop/services/user/internal/shared/error"
+	apperror "localloop/services/user/internal/shared/error"
 )
 
 type Service struct {
@@ -42,21 +42,21 @@ func (s *Service) Register(email, password, name string) error {
 
 	_, err := s.repo.FindByEmail(ctx, email)
 	if err == nil {
-		return apperr.ErrUserExists(
-			apperr.WithUser(email),
+		return apperror.ErrUserExists(
+			apperror.WithUser(email),
 		)
 	}
 
 	salt, err := shared.GenerateSalt(25)
 	if err != nil {
-		return apperr.ErrGeneratingSalt(
+		return apperror.ErrGeneratingSalt(
 			errorbuilder.WithOriginal(err),
 		)
 	}
 
 	hashedPassword, err := shared.HashPassword(password, salt)
 	if err != nil {
-		return apperr.ErrHashingPassword(
+		return apperror.ErrHashingPassword(
 			errorbuilder.WithOriginal(err),
 		)
 	}
@@ -69,9 +69,9 @@ func (s *Service) Register(email, password, name string) error {
 	}
 
 	if err := s.repo.Create(ctx, user); err != nil {
-		return apperr.ErrDatabaseOperation(
+		return apperror.ErrDatabaseOperation(
 			errorbuilder.WithOriginal(err),
-			apperr.WithUser(email),
+			apperror.WithUser(email),
 		)
 	}
 
@@ -84,14 +84,14 @@ func (s *Service) Login(email, password string) (string, error) {
 
 	user, err := s.repo.FindByEmail(ctx, email)
 	if err != nil {
-		return "", apperr.ErrInvalidCredentials(
-			apperr.WithUser(email),
+		return "", apperror.ErrInvalidCredentials(
+			apperror.WithUser(email),
 		)
 	}
 
 	if !shared.CheckPasswordHash(password, user.Salt, user.Hash) {
-		return "", apperr.ErrInvalidCredentials(
-			apperr.WithUser(email),
+		return "", apperror.ErrInvalidCredentials(
+			apperror.WithUser(email),
 		)
 	}
 
@@ -104,9 +104,9 @@ func (s *Service) Login(email, password string) (string, error) {
 	// Sign the token with the secret key
 	tokenString, err := token.SignedString(s.jwtSecret)
 	if err != nil {
-		return "", apperr.ErrDatabaseOperation(
+		return "", apperror.ErrDatabaseOperation(
 			errorbuilder.WithOriginal(err),
-			apperr.WithUser(email),
+			apperror.WithUser(email),
 		)
 	}
 
@@ -119,8 +119,8 @@ func (s *Service) Get(email string) (User, error) {
 
 	user, err := s.repo.FindByEmail(ctx, email)
 	if err != nil {
-		return User{}, apperr.ErrUserNotFound(
-			apperr.WithUser(email),
+		return User{}, apperror.ErrUserNotFound(
+			apperror.WithUser(email),
 		)
 	}
 
@@ -135,11 +135,11 @@ func (s *Service) Update(email, name, password string) error {
 	if password != "" {
 		salt, err := shared.GenerateSalt(25)
 		if err != nil {
-			return apperr.ErrGeneratingSalt(errorbuilder.WithOriginal(err))
+			return apperror.ErrGeneratingSalt(errorbuilder.WithOriginal(err))
 		}
 		hash, err := shared.HashPassword(password, salt)
 		if err != nil {
-			return apperr.ErrHashingPassword(errorbuilder.WithOriginal(err))
+			return apperror.ErrHashingPassword(errorbuilder.WithOriginal(err))
 		}
 		updates.Hash = hash
 		updates.Salt = salt
@@ -159,21 +159,21 @@ func (s *Service) ValidateToken(tokenString string) (*TokenClaims, error) {
 		case *jwt.ValidationError:
 			switch v.Errors {
 			case jwt.ValidationErrorExpired:
-				return nil, apperr.ErrTokenExpired()
+				return nil, apperror.ErrTokenExpired()
 			default:
-				return nil, apperr.ErrInvalidToken(
+				return nil, apperror.ErrInvalidToken(
 					errorbuilder.WithOriginal(err),
 				)
 			}
 		default:
-			return nil, apperr.ErrInvalidToken(
+			return nil, apperror.ErrInvalidToken(
 				errorbuilder.WithOriginal(err),
 			)
 		}
 	}
 
 	if !token.Valid {
-		return nil, apperr.ErrInvalidToken()
+		return nil, apperror.ErrInvalidToken()
 	}
 
 	return claims, nil
