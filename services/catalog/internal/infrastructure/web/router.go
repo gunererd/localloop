@@ -40,8 +40,10 @@ func (s *CatalogManagementServer) setupRoutes() {
 	router.HandleFunc("/fields/{id}", h.HandleRequest[struct{}](ch.DeleteField)).Methods("DELETE")
 
 	// Category-Field assignment
-	router.HandleFunc("/categories/{categoryId}/fields", ch.GetCategoryFields).Methods("GET")
-	router.HandleFunc("/categories/{categoryId}/fields/{fieldId}", ch.AssignFieldToCategory).Methods("POST")
+	router.HandleFunc("/categories/{categoryId}/fields",
+		h.HandleRequest[h.GetCategoryFieldsRequest](ch.GetCategoryFields)).Methods("GET")
+	router.HandleFunc("/categories/{categoryId}/fields/{fieldId}",
+		h.HandleRequest[h.AssignFieldToCategoryRequest](ch.AssignFieldToCategory)).Methods("POST")
 
 	// Field Type routes
 	router.HandleFunc("/field-types", h.HandleRequest[struct{}](ch.ListFieldTypes)).Methods("GET")

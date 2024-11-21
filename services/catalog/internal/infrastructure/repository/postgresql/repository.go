@@ -372,21 +372,27 @@ func (r *CatalogRepository) ListFieldTypeDiscriminators(ctx context.Context) ([]
 	return discriminators, nil
 }
 
-func (r *CatalogRepository) GetCategoryFields(ctx context.Context, categoryID uuid.UUID) ([]*catalog.Field, error) {
+func (r *CatalogRepository) GetCategoryFields(ctx context.Context, categoryID uuid.UUID) ([]*catalog.CategoryFieldInfo, error) {
 	results, err := r.q.GetCategoryFields(ctx, categoryID)
 	if err != nil {
 		return nil, err
 	}
 
-	fields := make([]*catalog.Field, len(results))
+	fields := make([]*catalog.CategoryFieldInfo, len(results))
 	for i, result := range results {
-		fields[i] = &catalog.Field{
+		field := &catalog.Field{
 			ID:          result.ID,
 			Name:        result.Name,
 			Description: result.Description.String,
 			FieldTypeID: result.FieldTypeID,
 			CreatedAt:   result.CreatedAt,
 			UpdatedAt:   result.UpdatedAt,
+		}
+
+		fields[i] = &catalog.CategoryFieldInfo{
+			Field:        field,
+			IsRequired:   result.IsRequired.Bool,
+			DisplayOrder: result.DisplayOrder,
 		}
 	}
 

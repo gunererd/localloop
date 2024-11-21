@@ -119,7 +119,7 @@ func (s *Service) AssignFieldToCategory(ctx context.Context, params AssignFieldP
 	return s.repo.AssignFieldToCategory(ctx, params)
 }
 
-func (s *Service) GetCategoryFields(ctx context.Context, categoryID uuid.UUID) ([]*Field, error) {
+func (s *Service) GetCategoryFields(ctx context.Context, categoryID uuid.UUID) ([]*CategoryFieldInfo, error) {
 	return s.repo.GetCategoryFields(ctx, categoryID)
 }
 

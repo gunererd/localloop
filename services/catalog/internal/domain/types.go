@@ -106,3 +106,9 @@ type UpdateFieldTypeDiscriminatorParams struct {
 	Description      string
 	ValidationSchema map[string]interface{} `validate:"required"`
 }
+
+type CategoryFieldInfo struct {
+	Field        *Field
+	IsRequired   bool
+	DisplayOrder int32
+}

@@ -21,7 +21,7 @@ type Repository interface {
 	DeleteField(ctx context.Context, id uuid.UUID) error
 	ListFields(ctx context.Context) ([]*Field, error)
 	AssignFieldToCategory(ctx context.Context, params AssignFieldParams) error
-	GetCategoryFields(ctx context.Context, categoryID uuid.UUID) ([]*Field, error)
+	GetCategoryFields(ctx context.Context, categoryID uuid.UUID) ([]*CategoryFieldInfo, error)
 
 	// Field Type operations
 	CreateFieldType(ctx context.Context, fieldType *FieldType) error

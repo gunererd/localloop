@@ -1,14 +1,12 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
 	catalog "localloop/services/catalog/internal/domain"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
 
 type CatalogHandler struct {
@@ -116,6 +114,24 @@ type UpdateFieldTypeDiscriminatorRequest struct {
 	Name             string                 `json:"name"`
 	Description      string                 `json:"description"`
 	ValidationSchema map[string]interface{} `json:"validationSchema"`
+}
+
+// Request/Response types
+type GetCategoryFieldsRequest struct {
+	CategoryID uuid.UUID `param:"categoryId"`
+}
+
+type CategoryFieldResponse struct {
+	Field        FieldResponse `json:"field"`
+	IsRequired   bool          `json:"isRequired"`
+	DisplayOrder int32         `json:"displayOrder"`
+}
+
+type AssignFieldToCategoryRequest struct {
+	CategoryID   uuid.UUID `param:"categoryId"`
+	FieldID      uuid.UUID `param:"fieldId"`
+	IsRequired   bool      `json:"isRequired"`
+	DisplayOrder int32     `json:"displayOrder"`
 }
 
 func (h *CatalogHandler) ListCategories(w http.ResponseWriter, r *http.Request) {
@@ -493,51 +509,37 @@ func toFieldTypeDiscriminatorResponse(d *catalog.FieldTypeDiscriminator) FieldTy
 	}
 }
 
-func (h *CatalogHandler) GetCategoryFields(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	categoryID, err := uuid.Parse(vars["categoryId"])
+func (h *CatalogHandler) GetCategoryFields(_ GetCategoryFieldsRequest, r *http.Request) (any, error) {
+	categoryID, err := parseIDParam(r, "categoryId")
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ApiResponse{Error: "Invalid category ID"})
-		return
+		return nil, fmt.Errorf("invalid category ID: %w", err)
 	}
 
 	fields, err := h.catalogService.GetCategoryFields(r.Context(), categoryID)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrCategoryNotFound {
-			status = http.StatusNotFound
-		}
-		w.WriteHeader(status)
-		json.NewEncoder(w).Encode(ApiResponse{Error: err.Error()})
-		return
+		return nil, err
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ApiResponse{Data: fields})
+	var responses []CategoryFieldResponse
+	for _, fieldInfo := range fields {
+		responses = append(responses, CategoryFieldResponse{
+			Field:        toFieldResponse(fieldInfo.Field),
+			IsRequired:   fieldInfo.IsRequired,
+			DisplayOrder: fieldInfo.DisplayOrder,
+		})
+	}
+	return responses, nil
 }
 
-func (h *CatalogHandler) AssignFieldToCategory(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	categoryID, err := uuid.Parse(vars["categoryId"])
+func (h *CatalogHandler) AssignFieldToCategory(req AssignFieldToCategoryRequest, r *http.Request) (any, error) {
+	categoryID, err := parseIDParam(r, "categoryId")
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ApiResponse{Error: "Invalid category ID"})
-		return
+		return nil, fmt.Errorf("invalid category ID: %w", err)
 	}
 
-	fieldID, err := uuid.Parse(vars["fieldId"])
+	fieldID, err := parseIDParam(r, "fieldId")
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ApiResponse{Error: "Invalid field ID"})
-		return
-	}
-
-	var req AssignFieldRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ApiResponse{Error: "Invalid request payload"})
-		return
+		return nil, fmt.Errorf("invalid field ID: %w", err)
 	}
 
 	params := catalog.AssignFieldParams{
@@ -548,23 +550,11 @@ func (h *CatalogHandler) AssignFieldToCategory(w http.ResponseWriter, r *http.Re
 	}
 
 	if err := h.catalogService.AssignFieldToCategory(r.Context(), params); err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrCategoryNotFound || err == catalog.ErrFieldNotFound {
-			status = http.StatusNotFound
-		} else if err == catalog.ErrInvalidInput {
-			status = http.StatusBadRequest
-		}
-		w.WriteHeader(status)
-		json.NewEncoder(w).Encode(ApiResponse{Error: err.Error()})
-		return
+		return nil, err
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(ApiResponse{
-		Message: "Field assigned to category successfully",
-		Data: map[string]interface{}{
-			"categoryId": categoryID,
-			"fieldId":    fieldID,
-		},
-	})
+	return map[string]interface{}{
+		"categoryId": categoryID,
+		"fieldId":    fieldID,
+	}, nil
 }
