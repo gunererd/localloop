@@ -2,30 +2,35 @@ package handler
 
 import (
 	"encoding/json"
-	catalog "localloop/services/catalog/internal/domain"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
-func respondWithJSON(w http.ResponseWriter, status int, response ApiResponse) {
+type ApiResponse struct {
+	Message string      `json:"message,omitempty"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   string      `json:"error,omitempty"`
+}
+
+func RespondWithJSON(w http.ResponseWriter, status int, response ApiResponse) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(response)
 }
 
-func respondWithError(w http.ResponseWriter, status int, message string) {
-	respondWithJSON(w, status, ApiResponse{Error: message})
+func RespondWithError(w http.ResponseWriter, status int, message string) {
+	RespondWithJSON(w, status, ApiResponse{Error: message})
 }
 
-func decodeRequest[T any](r *http.Request) (T, error) {
+func DecodeRequest[T any](r *http.Request) (T, error) {
 	var req T
 	err := json.NewDecoder(r.Body).Decode(&req)
 	return req, err
 }
 
-func parseIDParam(r *http.Request, param string) (uuid.UUID, error) {
+func ParseIDParam(r *http.Request, param string) (uuid.UUID, error) {
 	vars := mux.Vars(r)
 	return uuid.Parse(vars[param])
 }
@@ -36,11 +41,10 @@ func HandleRequest[Req any](handler HandlerFunc[Req]) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req Req
 
-		// Skip body decoding for GET/DELETE requests
 		if r.Method != http.MethodGet && r.Method != http.MethodDelete {
-			decodedReq, err := decodeRequest[Req](r)
+			decodedReq, err := DecodeRequest[Req](r)
 			if err != nil {
-				respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+				RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
 				return
 			}
 			req = decodedReq
@@ -49,13 +53,7 @@ func HandleRequest[Req any](handler HandlerFunc[Req]) http.HandlerFunc {
 		data, err := handler(req, r)
 		if err != nil {
 			status := http.StatusInternalServerError
-			switch err {
-			case catalog.ErrCategoryNotFound, catalog.ErrFieldNotFound:
-				status = http.StatusNotFound
-			case catalog.ErrInvalidInput:
-				status = http.StatusBadRequest
-			}
-			respondWithError(w, status, err.Error())
+			RespondWithError(w, status, err.Error())
 			return
 		}
 
@@ -69,7 +67,7 @@ func HandleRequest[Req any](handler HandlerFunc[Req]) http.HandlerFunc {
 			message = "deleted successfully"
 		}
 
-		respondWithJSON(w, getSuccessStatus(r.Method), ApiResponse{
+		RespondWithJSON(w, getSuccessStatus(r.Method), ApiResponse{
 			Message: message,
 			Data:    data,
 		})
