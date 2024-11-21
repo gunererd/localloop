@@ -393,6 +393,32 @@ func (r *CatalogRepository) GetCategoryFields(ctx context.Context, categoryID uu
 	return fields, nil
 }
 
+func (r *CatalogRepository) UpdateFieldTypeDiscriminator(ctx context.Context, discriminator *catalog.FieldTypeDiscriminator) error {
+	jsonSchema, err := json.Marshal(discriminator.ValidationSchema)
+	if err != nil {
+		return fmt.Errorf("failed to marshal validation schema: %w", err)
+	}
+
+	params := sqlc.UpdateFieldTypeDiscriminatorParams{
+		ID:               discriminator.ID,
+		Name:             discriminator.Name,
+		Description:      sql.NullString{String: discriminator.Description, Valid: discriminator.Description != ""},
+		ValidationSchema: jsonSchema,
+	}
+
+	result, err := r.q.UpdateFieldTypeDiscriminator(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	discriminator.CreatedAt = result.CreatedAt
+	return nil
+}
+
+func (r *CatalogRepository) DeleteFieldTypeDiscriminator(ctx context.Context, id uuid.UUID) error {
+	return r.q.DeleteFieldTypeDiscriminator(ctx, id)
+}
+
 // func (r *CatalogRepository) WithTx(ctx context.Context, fn func(repo catalog.Repository) error) error {
 // 	tx, err := r.q.db.(*sql.DB).BeginTx(ctx, nil)
 // 	if err != nil {
