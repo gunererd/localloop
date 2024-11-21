@@ -2,15 +2,12 @@ package catalog
 
 import (
 	"context"
-	"errors"
+	"database/sql"
+
+	"localloop/libs/pkg/errorbuilder"
+	apperror "localloop/services/catalog/internal/shared/error"
 
 	"github.com/google/uuid"
-)
-
-var (
-	ErrCategoryNotFound = errors.New("category not found")
-	ErrFieldNotFound    = errors.New("field not found")
-	ErrInvalidInput     = errors.New("invalid input")
 )
 
 type ServiceConfig struct {
@@ -31,6 +28,23 @@ func NewService(repo Repository, cfg ServiceConfig) *Service {
 
 // Category operations
 func (s *Service) CreateCategory(ctx context.Context, params CreateCategoryParams) (*Category, error) {
+	if params.Name == "" {
+		return nil, apperror.ErrInvalidCategoryName(
+			apperror.WithValidation("name", "name cannot be empty"),
+		)
+	}
+
+	if params.ParentID != nil {
+		// Verify parent exists
+		_, err := s.GetCategory(ctx, *params.ParentID)
+		if err != nil {
+			return nil, apperror.ErrCategoryNotFound(
+				apperror.WithCategory(params.ParentID.String()),
+				errorbuilder.WithOriginal(err),
+			)
+		}
+	}
+
 	category := &Category{
 		ID:          uuid.New(),
 		Name:        params.Name,
@@ -39,14 +53,27 @@ func (s *Service) CreateCategory(ctx context.Context, params CreateCategoryParam
 	}
 
 	if err := s.repo.CreateCategory(ctx, category); err != nil {
-		return nil, err
+		return nil, apperror.ErrDatabaseOperation(
+			errorbuilder.WithOriginal(err),
+		)
 	}
 
 	return category, nil
 }
 
 func (s *Service) GetCategory(ctx context.Context, id uuid.UUID) (*Category, error) {
-	return s.repo.GetCategory(ctx, id)
+	category, err := s.repo.GetCategory(ctx, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, apperror.ErrCategoryNotFound(
+				apperror.WithCategory(id.String()),
+			)
+		}
+		return nil, apperror.ErrDatabaseOperation(
+			errorbuilder.WithOriginal(err),
+		)
+	}
+	return category, nil
 }
 
 func (s *Service) UpdateCategory(ctx context.Context, params UpdateCategoryParams) (*Category, error) {
@@ -89,7 +116,18 @@ func (s *Service) CreateField(ctx context.Context, params CreateFieldParams) (*F
 }
 
 func (s *Service) GetField(ctx context.Context, id uuid.UUID) (*Field, error) {
-	return s.repo.GetField(ctx, id)
+	field, err := s.repo.GetField(ctx, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, apperror.ErrFieldNotFound(
+				apperror.WithField(id.String()),
+			)
+		}
+		return nil, apperror.ErrDatabaseOperation(
+			errorbuilder.WithOriginal(err),
+		)
+	}
+	return field, nil
 }
 
 func (s *Service) UpdateField(ctx context.Context, params UpdateFieldParams) (*Field, error) {
@@ -116,7 +154,29 @@ func (s *Service) ListFields(ctx context.Context) ([]*Field, error) {
 }
 
 func (s *Service) AssignFieldToCategory(ctx context.Context, params AssignFieldParams) error {
-	return s.repo.AssignFieldToCategory(ctx, params)
+	// Verify category exists
+	if _, err := s.GetCategory(ctx, params.CategoryID); err != nil {
+		return apperror.ErrCategoryNotFound(
+			apperror.WithCategory(params.CategoryID.String()),
+			errorbuilder.WithOriginal(err),
+		)
+	}
+
+	// Verify field exists
+	if _, err := s.GetField(ctx, params.FieldID); err != nil {
+		return apperror.ErrFieldNotFound(
+			apperror.WithField(params.FieldID.String()),
+			errorbuilder.WithOriginal(err),
+		)
+	}
+
+	if err := s.repo.AssignFieldToCategory(ctx, params); err != nil {
+		return apperror.ErrDatabaseOperation(
+			errorbuilder.WithOriginal(err),
+		)
+	}
+
+	return nil
 }
 
 func (s *Service) GetCategoryFields(ctx context.Context, categoryID uuid.UUID) ([]*CategoryFieldInfo, error) {
