@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	catalog "localloop/services/catalog/internal/domain"
 	"net/http"
 	"time"
@@ -76,6 +77,12 @@ type CreateFieldTypeRequest struct {
 	Properties          map[string]interface{} `json:"properties"`
 }
 
+type UpdateFieldTypeRequest struct {
+	Name                string                 `json:"name"`
+	TypeDiscriminatorID uuid.UUID              `json:"typeDiscriminatorId"`
+	Properties          map[string]interface{} `json:"properties"`
+}
+
 type FieldTypeResponse struct {
 	ID                  uuid.UUID              `json:"id"`
 	Name                string                 `json:"name"`
@@ -105,6 +112,12 @@ type AssignFieldRequest struct {
 	DisplayOrder int32 `json:"displayOrder"`
 }
 
+type UpdateFieldTypeDiscriminatorRequest struct {
+	Name             string                 `json:"name"`
+	Description      string                 `json:"description"`
+	ValidationSchema map[string]interface{} `json:"validationSchema"`
+}
+
 func (h *CatalogHandler) ListCategories(w http.ResponseWriter, r *http.Request) {
 	categories, err := h.catalogService.ListCategories(r.Context())
 	if err != nil {
@@ -115,13 +128,7 @@ func (h *CatalogHandler) ListCategories(w http.ResponseWriter, r *http.Request) 
 	respondWithJSON(w, http.StatusOK, ApiResponse{Data: categories})
 }
 
-func (h *CatalogHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
-	req, err := decodeRequest[CreateCategoryRequest](r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-
+func (h *CatalogHandler) CreateCategory(req CreateCategoryRequest, r *http.Request) (any, error) {
 	params := catalog.CreateCategoryParams{
 		Name:        req.Name,
 		Description: req.Description,
@@ -130,38 +137,24 @@ func (h *CatalogHandler) CreateCategory(w http.ResponseWriter, r *http.Request) 
 
 	category, err := h.catalogService.CreateCategory(r.Context(), params)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrInvalidInput {
-			status = http.StatusBadRequest
-		}
-		respondWithError(w, status, err.Error())
-		return
+		return nil, err
 	}
 
-	respondWithJSON(w, http.StatusCreated, ApiResponse{
-		Message: "Category created successfully",
-		Data:    toCategoryResponse(category),
-	})
+	return toCategoryResponse(category), nil
 }
 
-func (h *CatalogHandler) GetCategory(w http.ResponseWriter, r *http.Request) {
+func (h *CatalogHandler) GetCategory(_ struct{}, r *http.Request) (any, error) {
 	id, err := parseIDParam(r, "id")
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid category ID")
-		return
+		return nil, fmt.Errorf("invalid category ID: %w", err)
 	}
 
 	category, err := h.catalogService.GetCategory(r.Context(), id)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrCategoryNotFound {
-			status = http.StatusNotFound
-		}
-		respondWithError(w, status, err.Error())
-		return
+		return nil, err
 	}
 
-	respondWithJSON(w, http.StatusOK, ApiResponse{Data: toCategoryResponse(category)})
+	return toCategoryResponse(category), nil
 }
 
 func (h *CatalogHandler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
@@ -252,13 +245,7 @@ func (h *CatalogHandler) ListFields(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, ApiResponse{Data: fieldResponses})
 }
 
-func (h *CatalogHandler) CreateField(w http.ResponseWriter, r *http.Request) {
-	req, err := decodeRequest[CreateFieldRequest](r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-
+func (h *CatalogHandler) CreateField(req CreateFieldRequest, r *http.Request) (any, error) {
 	params := catalog.CreateFieldParams{
 		Name:        req.Name,
 		Description: req.Description,
@@ -267,51 +254,30 @@ func (h *CatalogHandler) CreateField(w http.ResponseWriter, r *http.Request) {
 
 	field, err := h.catalogService.CreateField(r.Context(), params)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrInvalidInput {
-			status = http.StatusBadRequest
-		}
-		respondWithError(w, status, err.Error())
-		return
+		return nil, err
 	}
 
-	respondWithJSON(w, http.StatusCreated, ApiResponse{
-		Message: "Field created successfully",
-		Data:    toFieldResponse(field),
-	})
+	return toFieldResponse(field), nil
 }
 
-func (h *CatalogHandler) GetField(w http.ResponseWriter, r *http.Request) {
+func (h *CatalogHandler) GetField(_ struct{}, r *http.Request) (any, error) {
 	id, err := parseIDParam(r, "id")
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid field ID")
-		return
+		return nil, fmt.Errorf("invalid field ID: %w", err)
 	}
 
 	field, err := h.catalogService.GetField(r.Context(), id)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrFieldNotFound {
-			status = http.StatusNotFound
-		}
-		respondWithError(w, status, err.Error())
-		return
+		return nil, err
 	}
 
-	respondWithJSON(w, http.StatusOK, ApiResponse{Data: toFieldResponse(field)})
+	return toFieldResponse(field), nil
 }
 
-func (h *CatalogHandler) UpdateField(w http.ResponseWriter, r *http.Request) {
+func (h *CatalogHandler) UpdateField(req UpdateFieldRequest, r *http.Request) (any, error) {
 	id, err := parseIDParam(r, "id")
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid field ID")
-		return
-	}
-
-	req, err := decodeRequest[UpdateFieldRequest](r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
+		return nil, fmt.Errorf("invalid field ID: %w", err)
 	}
 
 	params := catalog.UpdateFieldParams{
@@ -323,43 +289,23 @@ func (h *CatalogHandler) UpdateField(w http.ResponseWriter, r *http.Request) {
 
 	field, err := h.catalogService.UpdateField(r.Context(), params)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrFieldNotFound {
-			status = http.StatusNotFound
-		}
-		respondWithError(w, status, err.Error())
-		return
+		return nil, err
 	}
 
-	respondWithJSON(w, http.StatusOK, ApiResponse{
-		Message: "Field updated successfully",
-		Data:    toFieldResponse(field),
-	})
+	return toFieldResponse(field), nil
 }
 
-func (h *CatalogHandler) DeleteField(w http.ResponseWriter, r *http.Request) {
+func (h *CatalogHandler) DeleteField(_ struct{}, r *http.Request) (any, error) {
 	id, err := parseIDParam(r, "id")
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid field ID")
-		return
+		return nil, fmt.Errorf("invalid field ID: %w", err)
 	}
 
-	err = h.catalogService.DeleteField(r.Context(), id)
-	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrFieldNotFound {
-			status = http.StatusNotFound
-		}
-		respondWithError(w, status, err.Error())
-		return
+	if err := h.catalogService.DeleteField(r.Context(), id); err != nil {
+		return nil, err
 	}
 
-	respondWithJSON(w, http.StatusOK, ApiResponse{
-		Message: "Field deleted successfully",
-		Data: map[string]string{
-			"id": id.String(),
-		},
-	})
+	return map[string]string{"id": id.String()}, nil
 }
 
 func toFieldResponse(f *catalog.Field) FieldResponse {
@@ -373,28 +319,20 @@ func toFieldResponse(f *catalog.Field) FieldResponse {
 	}
 }
 
-func (h *CatalogHandler) ListFieldTypes(w http.ResponseWriter, r *http.Request) {
+func (h *CatalogHandler) ListFieldTypes(_ struct{}, r *http.Request) (any, error) {
 	fieldTypes, err := h.catalogService.ListFieldTypes(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to fetch field types")
-		return
+		return nil, err
 	}
 
-	var fieldTypeResponses []FieldTypeResponse
-	for _, fieldType := range fieldTypes {
-		fieldTypeResponses = append(fieldTypeResponses, toFieldTypeResponse(fieldType))
+	var responses []FieldTypeResponse
+	for _, ft := range fieldTypes {
+		responses = append(responses, toFieldTypeResponse(ft))
 	}
-
-	respondWithJSON(w, http.StatusOK, ApiResponse{Data: fieldTypeResponses})
+	return responses, nil
 }
 
-func (h *CatalogHandler) CreateFieldType(w http.ResponseWriter, r *http.Request) {
-	req, err := decodeRequest[CreateFieldTypeRequest](r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-
+func (h *CatalogHandler) CreateFieldType(req CreateFieldTypeRequest, r *http.Request) (any, error) {
 	params := catalog.CreateFieldTypeParams{
 		Name:                req.Name,
 		TypeDiscriminatorID: req.TypeDiscriminatorID,
@@ -403,38 +341,58 @@ func (h *CatalogHandler) CreateFieldType(w http.ResponseWriter, r *http.Request)
 
 	fieldType, err := h.catalogService.CreateFieldType(r.Context(), params)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrInvalidInput {
-			status = http.StatusBadRequest
-		}
-		respondWithError(w, status, err.Error())
-		return
+		return nil, err
 	}
 
-	respondWithJSON(w, http.StatusCreated, ApiResponse{
-		Message: "Field type created successfully",
-		Data:    toFieldTypeResponse(fieldType),
-	})
+	return toFieldTypeResponse(fieldType), nil
 }
 
-func (h *CatalogHandler) GetFieldType(w http.ResponseWriter, r *http.Request) {
+func (h *CatalogHandler) GetFieldType(_ struct{}, r *http.Request) (any, error) {
 	id, err := parseIDParam(r, "id")
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid field type ID")
-		return
+		return nil, fmt.Errorf("invalid field type ID: %w", err)
 	}
 
 	fieldType, err := h.catalogService.GetFieldType(r.Context(), id)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrFieldNotFound {
-			status = http.StatusNotFound
-		}
-		respondWithError(w, status, err.Error())
-		return
+		return nil, err
 	}
 
-	respondWithJSON(w, http.StatusOK, ApiResponse{Data: toFieldTypeResponse(fieldType)})
+	return toFieldTypeResponse(fieldType), nil
+}
+
+func (h *CatalogHandler) UpdateFieldType(req UpdateFieldTypeRequest, r *http.Request) (any, error) {
+	id, err := parseIDParam(r, "id")
+	if err != nil {
+		return nil, fmt.Errorf("invalid field type ID: %w", err)
+	}
+
+	params := catalog.UpdateFieldTypeParams{
+		ID:                  id,
+		Name:                req.Name,
+		TypeDiscriminatorID: req.TypeDiscriminatorID,
+		Properties:          req.Properties,
+	}
+
+	fieldType, err := h.catalogService.UpdateFieldType(r.Context(), params)
+	if err != nil {
+		return nil, err
+	}
+
+	return toFieldTypeResponse(fieldType), nil
+}
+
+func (h *CatalogHandler) DeleteFieldType(_ struct{}, r *http.Request) (any, error) {
+	id, err := parseIDParam(r, "id")
+	if err != nil {
+		return nil, fmt.Errorf("invalid field type ID: %w", err)
+	}
+
+	if err := h.catalogService.DeleteFieldType(r.Context(), id); err != nil {
+		return nil, err
+	}
+
+	return map[string]string{"id": id.String()}, nil
 }
 
 func toFieldTypeResponse(ft *catalog.FieldType) FieldTypeResponse {
@@ -449,28 +407,20 @@ func toFieldTypeResponse(ft *catalog.FieldType) FieldTypeResponse {
 }
 
 // Field Type Discriminator handlers
-func (h *CatalogHandler) ListFieldTypeDiscriminators(w http.ResponseWriter, r *http.Request) {
+func (h *CatalogHandler) ListFieldTypeDiscriminators(_ struct{}, r *http.Request) (any, error) {
 	discriminators, err := h.catalogService.ListFieldTypeDiscriminators(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to fetch field type discriminators")
-		return
+		return nil, err
 	}
 
-	var discriminatorResponses []FieldTypeDiscriminatorResponse
+	var responses []FieldTypeDiscriminatorResponse
 	for _, disc := range discriminators {
-		discriminatorResponses = append(discriminatorResponses, toFieldTypeDiscriminatorResponse(disc))
+		responses = append(responses, toFieldTypeDiscriminatorResponse(disc))
 	}
-
-	respondWithJSON(w, http.StatusOK, ApiResponse{Data: discriminatorResponses})
+	return responses, nil
 }
 
-func (h *CatalogHandler) CreateFieldTypeDiscriminator(w http.ResponseWriter, r *http.Request) {
-	req, err := decodeRequest[CreateFieldTypeDiscriminatorRequest](r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-
+func (h *CatalogHandler) CreateFieldTypeDiscriminator(req CreateFieldTypeDiscriminatorRequest, r *http.Request) (any, error) {
 	params := catalog.CreateFieldTypeDiscriminatorParams{
 		Name:             req.Name,
 		Description:      req.Description,
@@ -479,38 +429,58 @@ func (h *CatalogHandler) CreateFieldTypeDiscriminator(w http.ResponseWriter, r *
 
 	discriminator, err := h.catalogService.CreateFieldTypeDiscriminator(r.Context(), params)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrInvalidInput {
-			status = http.StatusBadRequest
-		}
-		respondWithError(w, status, err.Error())
-		return
+		return nil, err
 	}
 
-	respondWithJSON(w, http.StatusCreated, ApiResponse{
-		Message: "Field type discriminator created successfully",
-		Data:    toFieldTypeDiscriminatorResponse(discriminator),
-	})
+	return toFieldTypeDiscriminatorResponse(discriminator), nil
 }
 
-func (h *CatalogHandler) GetFieldTypeDiscriminator(w http.ResponseWriter, r *http.Request) {
+func (h *CatalogHandler) GetFieldTypeDiscriminator(_ struct{}, r *http.Request) (any, error) {
 	id, err := parseIDParam(r, "id")
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid field type discriminator ID")
-		return
+		return nil, fmt.Errorf("invalid field type discriminator ID: %w", err)
 	}
 
 	discriminator, err := h.catalogService.GetFieldTypeDiscriminator(r.Context(), id)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrFieldNotFound {
-			status = http.StatusNotFound
-		}
-		respondWithError(w, status, err.Error())
-		return
+		return nil, err
 	}
 
-	respondWithJSON(w, http.StatusOK, ApiResponse{Data: toFieldTypeDiscriminatorResponse(discriminator)})
+	return toFieldTypeDiscriminatorResponse(discriminator), nil
+}
+
+func (h *CatalogHandler) UpdateFieldTypeDiscriminator(req UpdateFieldTypeDiscriminatorRequest, r *http.Request) (any, error) {
+	id, err := parseIDParam(r, "id")
+	if err != nil {
+		return nil, fmt.Errorf("invalid field type discriminator ID: %w", err)
+	}
+
+	params := catalog.UpdateFieldTypeDiscriminatorParams{
+		ID:               id,
+		Name:             req.Name,
+		Description:      req.Description,
+		ValidationSchema: req.ValidationSchema,
+	}
+
+	discriminator, err := h.catalogService.UpdateFieldTypeDiscriminator(r.Context(), params)
+	if err != nil {
+		return nil, err
+	}
+
+	return toFieldTypeDiscriminatorResponse(discriminator), nil
+}
+
+func (h *CatalogHandler) DeleteFieldTypeDiscriminator(_ struct{}, r *http.Request) (any, error) {
+	id, err := parseIDParam(r, "id")
+	if err != nil {
+		return nil, fmt.Errorf("invalid field type discriminator ID: %w", err)
+	}
+
+	if err := h.catalogService.DeleteFieldTypeDiscriminator(r.Context(), id); err != nil {
+		return nil, err
+	}
+
+	return map[string]string{"id": id.String()}, nil
 }
 
 func toFieldTypeDiscriminatorResponse(d *catalog.FieldTypeDiscriminator) FieldTypeDiscriminatorResponse {
@@ -595,67 +565,6 @@ func (h *CatalogHandler) AssignFieldToCategory(w http.ResponseWriter, r *http.Re
 		Data: map[string]interface{}{
 			"categoryId": categoryID,
 			"fieldId":    fieldID,
-		},
-	})
-}
-
-func (h *CatalogHandler) UpdateFieldType(w http.ResponseWriter, r *http.Request) {
-	id, err := parseIDParam(r, "id")
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid field type ID")
-		return
-	}
-
-	req, err := decodeRequest[CreateFieldTypeRequest](r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-
-	params := catalog.UpdateFieldTypeParams{
-		ID:                  id,
-		Name:                req.Name,
-		TypeDiscriminatorID: req.TypeDiscriminatorID,
-		Properties:          req.Properties,
-	}
-
-	fieldType, err := h.catalogService.UpdateFieldType(r.Context(), params)
-	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrFieldNotFound {
-			status = http.StatusNotFound
-		}
-		respondWithError(w, status, err.Error())
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, ApiResponse{
-		Message: "Field type updated successfully",
-		Data:    toFieldTypeResponse(fieldType),
-	})
-}
-
-func (h *CatalogHandler) DeleteFieldType(w http.ResponseWriter, r *http.Request) {
-	id, err := parseIDParam(r, "id")
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid field type ID")
-		return
-	}
-
-	err = h.catalogService.DeleteFieldType(r.Context(), id)
-	if err != nil {
-		status := http.StatusInternalServerError
-		if err == catalog.ErrFieldNotFound {
-			status = http.StatusNotFound
-		}
-		respondWithError(w, status, err.Error())
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, ApiResponse{
-		Message: "Field type deleted successfully",
-		Data: map[string]string{
-			"id": id.String(),
 		},
 	})
 }

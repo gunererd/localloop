@@ -37,4 +37,6 @@ type Repository interface {
 
 	// Transaction support
 	// WithTx(ctx context.Context, fn func(repo Repository) error) error
+	UpdateFieldTypeDiscriminator(ctx context.Context, discriminator *FieldTypeDiscriminator) error
+	DeleteFieldTypeDiscriminator(ctx context.Context, id uuid.UUID) error
 }
