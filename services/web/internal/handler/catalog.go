@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"errors"
 	"html/template"
+	"localloop/libs/pkg/errorbuilder"
 	"localloop/services/web/internal/repository"
+	apperror "localloop/services/web/internal/shared/error"
 	"net/http"
 )
 
@@ -29,7 +32,19 @@ func NewCatalogHandler(catalogRepo repository.CatalogRepository) (*CatalogHandle
 func (h *CatalogHandler) ShowCategoriesPage(w http.ResponseWriter, r *http.Request) {
 	categories, err := h.catalogRepo.ListCategories()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		var customErr *errorbuilder.CustomError
+		if errors.As(err, &customErr) {
+			switch customErr.Code {
+			case errorbuilder.ErrNotFound:
+				http.Error(w, "Categories not found", http.StatusNotFound)
+			case errorbuilder.ErrInternal:
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+			default:
+				http.Error(w, customErr.Error(), int(customErr.Code))
+			}
+			return
+		}
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -37,7 +52,11 @@ func (h *CatalogHandler) ShowCategoriesPage(w http.ResponseWriter, r *http.Reque
 		"Categories": categories,
 	}
 
-	h.templates.ExecuteTemplate(w, "list.html", data)
+	if err := h.templates.ExecuteTemplate(w, "list.html", data); err != nil {
+		http.Error(w, apperror.ErrTemplateRender(
+			errorbuilder.WithOriginal(err),
+		).Error(), http.StatusInternalServerError)
+	}
 }
 
 func (h *CatalogHandler) ShowCreateCategoryPage(w http.ResponseWriter, r *http.Request) {

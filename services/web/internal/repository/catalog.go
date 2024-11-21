@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"localloop/libs/pkg/errorbuilder"
+	apperror "localloop/services/web/internal/shared/error"
+
 	"github.com/google/uuid"
 )
 
@@ -82,22 +85,39 @@ func (r *catalogRepository) ListCategories() ([]Category, error) {
 func (r *catalogRepository) GetCategory(id uuid.UUID) (*Category, error) {
 	resp, err := r.client.Get(fmt.Sprintf("%s/categories/%s", r.baseURL, id))
 	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
+		return nil, apperror.ErrCatalogService(
+			apperror.WithService("catalog"),
+			errorbuilder.WithOriginal(err),
+		)
 	}
 	defer resp.Body.Close()
 
 	var apiResp apiResponse
 	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
+		return nil, apperror.ErrInvalidJSON(
+			errorbuilder.WithOriginal(err),
+		)
 	}
 
 	if apiResp.Error != "" {
-		return nil, fmt.Errorf(apiResp.Error)
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, apperror.ErrCategoryNotFound(
+				apperror.WithResource("category", id.String()),
+			)
+		}
+		return nil, apperror.ErrCatalogService(
+			apperror.WithService("catalog"),
+			errorbuilder.WithContext(map[string]any{
+				"error": apiResp.Error,
+			}),
+		)
 	}
 
 	var category Category
 	if err := json.Unmarshal(apiResp.Data, &category); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal category: %w", err)
+		return nil, apperror.ErrInvalidJSON(
+			errorbuilder.WithOriginal(err),
+		)
 	}
 
 	return &category, nil
