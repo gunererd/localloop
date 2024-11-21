@@ -5,14 +5,16 @@ import (
 )
 
 type Config struct {
-	Port           string
-	UserServiceURL string
+	Port              string
+	UserServiceURL    string
+	CatalogServiceURL string
 }
 
 func Load() *Config {
 	return &Config{
-		Port:           getEnv("PORT", "3000"),
-		UserServiceURL: getEnv("USER_SERVICE_URL", "http://localhost:8080"),
+		Port:              getEnv("PORT", "3000"),
+		UserServiceURL:    getEnv("USER_SERVICE_URL", "http://localhost:8080"),
+		CatalogServiceURL: getEnv("CATALOG_SERVICE_URL", "http://localhost:8081"),
 	}
 }
 

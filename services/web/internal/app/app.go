@@ -17,9 +17,15 @@ func NewApp(cfg *config.Config) (*App, error) {
 
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(cfg.UserServiceURL)
+	catalogRepo := repository.NewCatalogRepository(cfg.CatalogServiceURL)
 
 	// Initialize handlers
 	authHandler, err := handler.NewAuthHandler(userRepo)
+	if err != nil {
+		return nil, err
+	}
+
+	catalogHandler, err := handler.NewCatalogHandler(catalogRepo)
 	if err != nil {
 		return nil, err
 	}
@@ -29,6 +35,9 @@ func NewApp(cfg *config.Config) (*App, error) {
 	server.Router.HandleFunc("/auth/login", authHandler.HandleLogin).Methods("POST")
 	server.Router.HandleFunc("/register", authHandler.ShowRegisterPage).Methods("GET")
 	server.Router.HandleFunc("/auth/register", authHandler.HandleRegister).Methods("POST")
+
+	server.Router.HandleFunc("/categories", catalogHandler.ShowCategoriesPage).Methods("GET")
+	server.Router.HandleFunc("/categories/new", catalogHandler.ShowCreateCategoryPage).Methods("GET")
 
 	return &App{
 		config: cfg,
