@@ -2,6 +2,7 @@ package web
 
 import (
 	"localloop/libs/pkg/web"
+	bh "localloop/libs/pkg/web/handler"
 	catalog "localloop/services/catalog/internal/domain"
 	h "localloop/services/catalog/internal/infrastructure/web/handler"
 )
@@ -26,36 +27,36 @@ func (s *CatalogManagementServer) setupRoutes() {
 	ch := h.NewCatalogHandler(s.catalogService)
 
 	// Category routes
-	router.HandleFunc("/categories", ch.ListCategories).Methods("GET")
-	router.HandleFunc("/categories", h.HandleRequest[h.CreateCategoryRequest](ch.CreateCategory)).Methods("POST")
-	router.HandleFunc("/categories/{id}", h.HandleRequest[struct{}](ch.GetCategory)).Methods("GET")
-	router.HandleFunc("/categories/{id}", ch.UpdateCategory).Methods("PUT")
-	router.HandleFunc("/categories/{id}", ch.DeleteCategory).Methods("DELETE")
+	router.HandleFunc("/categories", bh.HandleRequest(ch.Category.List)).Methods("GET")
+	router.HandleFunc("/categories", bh.HandleRequest(ch.Category.Create)).Methods("POST")
+	router.HandleFunc("/categories/{id}", bh.HandleRequest(ch.Category.Get)).Methods("GET")
+	router.HandleFunc("/categories/{id}", bh.HandleRequest(ch.Category.Update)).Methods("PUT")
+	router.HandleFunc("/categories/{id}", bh.HandleRequest(ch.Category.Delete)).Methods("DELETE")
 
 	// Field routes
-	router.HandleFunc("/fields", ch.ListFields).Methods("GET")
-	router.HandleFunc("/fields", h.HandleRequest[h.CreateFieldRequest](ch.CreateField)).Methods("POST")
-	router.HandleFunc("/fields/{id}", h.HandleRequest[struct{}](ch.GetField)).Methods("GET")
-	router.HandleFunc("/fields/{id}", h.HandleRequest[h.UpdateFieldRequest](ch.UpdateField)).Methods("PUT")
-	router.HandleFunc("/fields/{id}", h.HandleRequest[struct{}](ch.DeleteField)).Methods("DELETE")
+	router.HandleFunc("/fields", bh.HandleRequest(ch.Field.List)).Methods("GET")
+	router.HandleFunc("/fields", bh.HandleRequest(ch.Field.Create)).Methods("POST")
+	router.HandleFunc("/fields/{id}", bh.HandleRequest(ch.Field.Get)).Methods("GET")
+	router.HandleFunc("/fields/{id}", bh.HandleRequest(ch.Field.Update)).Methods("PUT")
+	router.HandleFunc("/fields/{id}", bh.HandleRequest(ch.Field.Delete)).Methods("DELETE")
 
 	// Category-Field assignment
 	router.HandleFunc("/categories/{categoryId}/fields",
-		h.HandleRequest[h.GetCategoryFieldsRequest](ch.GetCategoryFields)).Methods("GET")
+		bh.HandleRequest(ch.GetCategoryFields)).Methods("GET")
 	router.HandleFunc("/categories/{categoryId}/fields/{fieldId}",
-		h.HandleRequest[h.AssignFieldToCategoryRequest](ch.AssignFieldToCategory)).Methods("POST")
+		bh.HandleRequest(ch.AssignFieldToCategory)).Methods("POST")
 
 	// Field Type routes
-	router.HandleFunc("/field-types", h.HandleRequest[struct{}](ch.ListFieldTypes)).Methods("GET")
-	router.HandleFunc("/field-types", h.HandleRequest[h.CreateFieldTypeRequest](ch.CreateFieldType)).Methods("POST")
-	router.HandleFunc("/field-types/{id}", h.HandleRequest[struct{}](ch.GetFieldType)).Methods("GET")
-	router.HandleFunc("/field-types/{id}", h.HandleRequest[h.UpdateFieldTypeRequest](ch.UpdateFieldType)).Methods("PUT")
-	router.HandleFunc("/field-types/{id}", h.HandleRequest[struct{}](ch.DeleteFieldType)).Methods("DELETE")
+	router.HandleFunc("/field-types", bh.HandleRequest(ch.FieldType.List)).Methods("GET")
+	router.HandleFunc("/field-types", bh.HandleRequest(ch.FieldType.Create)).Methods("POST")
+	router.HandleFunc("/field-types/{id}", bh.HandleRequest(ch.FieldType.Get)).Methods("GET")
+	router.HandleFunc("/field-types/{id}", bh.HandleRequest(ch.FieldType.Update)).Methods("PUT")
+	router.HandleFunc("/field-types/{id}", bh.HandleRequest(ch.FieldType.Delete)).Methods("DELETE")
 
 	// Field Type Discriminator routes
-	router.HandleFunc("/field-type-discriminators", h.HandleRequest[struct{}](ch.ListFieldTypeDiscriminators)).Methods("GET")
-	router.HandleFunc("/field-type-discriminators", h.HandleRequest[h.CreateFieldTypeDiscriminatorRequest](ch.CreateFieldTypeDiscriminator)).Methods("POST")
-	router.HandleFunc("/field-type-discriminators/{id}", h.HandleRequest[struct{}](ch.GetFieldTypeDiscriminator)).Methods("GET")
-	router.HandleFunc("/field-type-discriminators/{id}", h.HandleRequest[h.UpdateFieldTypeDiscriminatorRequest](ch.UpdateFieldTypeDiscriminator)).Methods("PUT")
-	router.HandleFunc("/field-type-discriminators/{id}", h.HandleRequest[struct{}](ch.DeleteFieldTypeDiscriminator)).Methods("DELETE")
+	router.HandleFunc("/field-type-discriminators", bh.HandleRequest(ch.Discriminator.List)).Methods("GET")
+	router.HandleFunc("/field-type-discriminators", bh.HandleRequest(ch.Discriminator.Create)).Methods("POST")
+	router.HandleFunc("/field-type-discriminators/{id}", bh.HandleRequest(ch.Discriminator.Get)).Methods("GET")
+	router.HandleFunc("/field-type-discriminators/{id}", bh.HandleRequest(ch.Discriminator.Update)).Methods("PUT")
+	router.HandleFunc("/field-type-discriminators/{id}", bh.HandleRequest(ch.Discriminator.Delete)).Methods("DELETE")
 }

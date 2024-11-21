@@ -11,6 +11,11 @@ import (
 
 type EmptyRequest struct{}
 
+// Generic type parameters:
+// D: Domain type (or more like Resource type, e.g. Category, User, etc.)
+// C: Create request type
+// U: Update request type
+// R: Response type
 type CRUDHandler[D any, C any, U any, R any] struct {
 	create     func(context.Context, C) (*D, error)
 	get        func(context.Context, uuid.UUID) (*D, error)
